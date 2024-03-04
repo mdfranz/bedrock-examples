@@ -2,8 +2,10 @@
 
 Sample code on how to use [AWS Titan](https://aws.amazon.com/bedrock/titan/) and other Open Source models from BedRock such as Mistral and LLama. You will need to request access via `Model Access`
 
-![Bedrock Model Access](bedrock-model-access.png)
+Also see my [bedrock links](https://github.com/mdfranz/cheetsheetz/blob/main/aws/bedrock.md)
 
+
+![Bedrock Model Access](bedrock-model-access.png)
 
 # View Models
 
