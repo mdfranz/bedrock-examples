@@ -75,10 +75,10 @@ class Rubble(object):
 
 if __name__ == "__main__":
   logger.info("RUBBLE: Starting __main__")
-  b = Rubble(modelId="mistral.mistral-7b-instruct-v0:2")
-  b.set_prompt("Are you there, Fred? Is your name, Fred. I am Barney")
-  print(b.invoke())
 
-  b = Rubble(modelId="amazon.titan-text-lite-v1")
-  b.set_prompt("Are you there, Fred? Is your name, Fred. I am Barney")
-  print(b.invoke())
+  models = ["mistral.mistral-7b-instruct-v0:2","amazon.titan-text-lite-v1","amazon.titan-tg1-large"]
+
+  for m in models:
+    b = Rubble(modelId=m)
+    b.set_prompt("Are you there, Fred? Is your name, Fred. I am Barney")
+    print(b.invoke())
