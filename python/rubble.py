@@ -27,10 +27,11 @@ class Rubble(object):
 
   def invoke(self):
     result = self.client.invoke_model( contentType="application/json", accept="*/*", modelId=self.modelId, body=json.dumps(self.create_body()))
-    print(result)
+    return json.loads(result.get('body').read()).get('results')[0].get('outputText')
+
+   
   
 if __name__ == "__main__":
-  print("Main")
   b = Rubble()
-  b.set_prompt("Are you thered,Fred?")
-  b.invoke()
+  b.set_prompt("Are you there, Fred? Is your name, Fred. I am barney")
+  print(b.invoke())
