@@ -4,7 +4,7 @@
 # See https://sbstjn.com/blog/ai-generative-ai-aws-bedrock-cli-text-generation/
 #
 
-import boto3,sys,json,logging
+import boto3,json,logging
 
 ## Globals for Logging BAD
 
@@ -16,9 +16,7 @@ def normalize_response(r):
   jr = json.loads(r.get('body').read())
 
   logger.info("RUBBLE: Entering normalize_response")
-  logger.debug(r.keys())
   model_result = None
-
 
   # assume we have unique fields so as soon as there
   for result_field in ['outputs','results']:
@@ -33,7 +31,7 @@ def normalize_response(r):
         return model_result[0]['outputText']
 
   # Fallback 
-  if model_result == None:
+  if model_result is None:
     return "Unknown results or Error!"
    
 class Rubble(object):
@@ -49,6 +47,7 @@ class Rubble(object):
     self.prompt = p
 
   def create_body(self):
+    """Form request to LLM for supported models"""
     if self.modelId.find("titan") > -1:
       logger.info("RUBBLE: Creating body for %s ",self.modelId)
       body  = {
@@ -69,6 +68,7 @@ class Rubble(object):
     return body
 
   def invoke(self):
+    """Call the model and normalize response"""
     print("\n\nInvoking model %s" % self.modelId)
     result = self.client.invoke_model( contentType="application/json", accept="*/*", modelId=self.modelId, body=json.dumps(self.create_body()))
     return normalize_response(result)
