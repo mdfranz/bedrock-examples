@@ -4,18 +4,26 @@
 # See https://sbstjn.com/blog/ai-generative-ai-aws-bedrock-cli-text-generation/
 #
 
-import boto3,json,logging
+import boto3,json,logging,sys
 
 ## Globals for Logging BAD
 
-logging.basicConfig(filename="rubble.log",level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename="rubble.log",level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
 
 def normalize_response(r):
   """Handle the output of different LLMs very stupidly"""
-  jr = json.loads(r.get('body').read())
+  logger.debug("RUBBLE: Entering normalize_response")
+  
+  # Pull out the stats from the response header
+  metadata = r['ResponseMetadata']['HTTPHeaders']
+  latency = metadata['x-amzn-bedrock-invocation-latency']
+  tokens_out = metadata['x-amzn-bedrock-output-token-count']
+  tokens_in = metadata['x-amzn-bedrock-input-token-count']
+  logger.info(f"RUBBLE: Response stats latency={latency} input token count={tokens_in}  output token count={tokens_out}")
 
-  logger.info("RUBBLE: Entering normalize_response")
+  # Process body 
+  jr = json.loads(r.get('body').read())
   model_result = None
 
   # assume we have unique fields so as soon as there
@@ -41,15 +49,15 @@ class Rubble(object):
     self.client = boto3.client('bedrock-runtime') 
     self.temperature = temperature
     self.modelId = modelId
-    logger.debug("RUBBLE: Creating Rubble for: %s",modelId)
+    logger.info("RUBBLE: Creating Rubble for model: %s",modelId)
 
   def set_prompt(self,p):
     self.prompt = p
 
   def create_body(self):
     """Form request to LLM for supported models"""
+    logger.debug("RUBBLE: Creating body for %s ",self.modelId)
     if self.modelId.find("titan") > -1:
-      logger.info("RUBBLE: Creating body for %s ",self.modelId)
       body  = {
         "inputText": f"{self.prompt}",
         "textGenerationConfig": {
@@ -74,11 +82,16 @@ class Rubble(object):
     return normalize_response(result)
 
 if __name__ == "__main__":
-  logger.info("RUBBLE: Starting __main__")
+  logger.debug("RUBBLE: Starting __main__")
 
-  models = ["mistral.mistral-7b-instruct-v0:2","amazon.titan-text-lite-v1","amazon.titan-tg1-large"]
+  if len(sys.argv) > 1:
+    models = [sys.argv[1]]
+  else:
+    models = ["mistral.mixtral-8x7b-instruct-v0:1","mistral.mistral-7b-instruct-v0:2","amazon.titan-text-lite-v1","amazon.titan-tg1-large","amazon.titan-text-express-v1"]
+
+  prompt = sys.stdin.read()
 
   for m in models:
     b = Rubble(modelId=m)
-    b.set_prompt("Are you there, Fred? Is your name, Fred. I am Barney")
+    b.set_prompt(prompt)
     print(b.invoke())
